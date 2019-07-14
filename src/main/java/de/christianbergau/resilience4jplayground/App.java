@@ -1,23 +1,18 @@
 package de.christianbergau.resilience4jplayground;
 
-import io.github.resilience4j.decorators.Decorators;
-import io.github.resilience4j.retry.Retry;
-import io.vavr.control.Try;
+import de.christianbergau.resilience4jplayground.presenterimpl.StdOutSearchProductsPresenter;
+import de.christianbergau.resilience4jplayground.repository.HttpProductsRepository;
+import de.christianbergau.resilience4jplayground.repository.ProductsRepository;
+import de.christianbergau.resilience4jplayground.usecase.searchproducts.SearchProductsInteractor;
+import de.christianbergau.resilience4jplayground.usecase.searchproducts.SearchProductsPresenter;
 
-import java.util.function.Supplier;
+import java.net.http.HttpClient;
 
 public class App {
     public static void main(String... args) {
-        FailingBackendService service = new FailingBackendService();
-
-        Supplier<String> decoratedSupplier = Decorators.ofSupplier(service::doSomething)
-                .withRetry(Retry.ofDefaults("failingBackendService"))
-                .decorate();
-
-        String result = Try.ofSupplier(decoratedSupplier)
-                .recover(throwable -> "Hello from Recovery")
-                .get();
-
-        System.out.println(result);
+        SearchProductsPresenter presenter = new StdOutSearchProductsPresenter();
+        ProductsRepository repository = new HttpProductsRepository(HttpClient.newHttpClient());
+        SearchProductsInteractor interactor = new SearchProductsInteractor(presenter, repository);
+        interactor.searchFor("Shoes");
     }
 }
