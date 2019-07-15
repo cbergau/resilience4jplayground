@@ -23,6 +23,8 @@ public class SearchProductsInteractor {
         /*
          This is the tricky, a little ugly, part. We have to convert the checked exception to a non-checked exception,
          because java can not handle checked exceptions in Supplier.
+
+         If there is no checked exception, then "() -> repository.searchForProducts(searchTerm)" would be enough
          */
         Supplier<String> repositorySupplier = () -> {
             try {
