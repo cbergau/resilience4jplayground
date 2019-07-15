@@ -7,6 +7,7 @@ import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
 import io.vavr.control.Try;
 
+import java.io.IOException;
 import java.util.function.Supplier;
 
 public class SearchProductsInteractor {
@@ -19,7 +20,17 @@ public class SearchProductsInteractor {
     }
 
     public void searchFor(String searchTerm) {
-        Supplier<String> decoratedSupplier = Decorators.ofSupplier(() -> repository.searchForProducts(searchTerm))
+        Supplier<String> repositorySupplier = () -> {
+            try {
+                return repository.searchForProducts(searchTerm);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        };
+
+        Supplier<String> decoratedSupplier = Decorators.ofSupplier(repositorySupplier)
                 .withRetry(Retry.ofDefaults("backendService"))
                 .withCircuitBreaker(CircuitBreaker.ofDefaults("backendService"))
                 .withBulkhead(Bulkhead.ofDefaults("backendService"))

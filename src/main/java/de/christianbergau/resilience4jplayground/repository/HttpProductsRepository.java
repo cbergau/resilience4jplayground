@@ -1,5 +1,6 @@
 package de.christianbergau.resilience4jplayground.repository;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -13,20 +14,16 @@ public class HttpProductsRepository implements ProductsRepository {
     }
 
     @Override
-    public String searchForProducts(String searchFor) {
+    public String searchForProducts(String searchFor) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/test"))
                 .build();
 
         HttpResponse<String> response;
 
-        //@TODO Is this the right approach? Converting Exceptions like that seems not right.
-        try {
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+        // normally map the response to a list of entities here
         return response.body();
     }
 }
